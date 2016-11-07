@@ -1,0 +1,18 @@
+{
+  "name": "anonymous",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "start": "node ./bin/www"
+  },
+  "dependencies": {
+    "body-parser": "~1.15.1",
+    "cookie-parser": "~1.4.3",
+
+    "ejs": "~2.4.1",
+    "express": "~4.13.4",
+    "mongoose": "^4.6.6",
+
+    "socket.io": "^1.5.1"
+  }
+}

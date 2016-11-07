@@ -1,0 +1,26 @@
+body, html {
+    margin: 0;
+    padding: 0;
+    position: relative;
+}
+
+.container {
+    padding: 1em;
+    width: 450px;
+    height: 500px;
+    margin: 0 auto;
+}
+
+#chatscreen {
+  border: 1px solid;
+  min-width: 448px;
+  min-height: 460px;
+  border-bottom: none;
+}
+
+#message {
+  width: 95%;
+  padding: 10px;
+  font-size: 14px;
+  border: 1px solid;
+}
