@@ -5,6 +5,7 @@ var socket = io.connect('http://localhost:3000');
 
 var ctnBtn = $('#ctnBtn');
 var disBtn = $('#disBtn');
+var count = $('#count');
 
 disBtn.hide();
 
@@ -52,6 +53,7 @@ socket.on('got one', function(data) {
     disBtn.show();
     ctnBtn.hide();
   } else {
+message.prop('disabled', 'disabled');
     title.html("Retry");
     st.html('Retry');
   }
@@ -73,11 +75,37 @@ socket.on('message append', function(msg) {
 });
 
 disBtn.click(function(event) {
-  socket.emit('remove', {from: socket.id, to: random})
+  socket.emit('remove', {from: socket.id, to: random});
+  chatscreen.html('');
+  title.html("Find a stranger");
+  st.html('Find a stranger');
+  disBtn.fadeOut();
+  ctnBtn.fadeIn();
+message.prop('disabled', 'disabled');
+
+});
+
+
+socket.on('stranger leave', function() {
+  chatscreen.html('');
+  title.html("Find a stranger");
+  st.html('Find a stranger');
+  disBtn.fadeOut();
+  ctnBtn.fadeIn();
+message.prop('disabled', 'disabled');
+  
 });
 
 socket.on('unexpected', function(data) {
   title.html(data);
   st.html(data);
+});
+
+socket.on('a user join', function(num) {
+  count.html('Users online:' + num);
+});
+
+socket.on('a user leave', function(num) {
+  count.html('Users online:' + num);
 });
 

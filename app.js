@@ -44,6 +44,8 @@ io.on('connection', function(socket) {
     // key: socket.id, value: { busy ? }
     connections.set(currentUser, false);
 
+    io.emit('a user join', connections.size);
+
     socket.on('get random', function(data) {
         var unqArr =  Array.from(connections);
         if ( unqArr.length <= 1 ) {
@@ -73,12 +75,14 @@ io.on('connection', function(socket) {
     socket.on('remove', function(data) {
         connections.set(data.from, false);
         connections.set(data.to, false);
+        io.to(data.to).emit('stranger leave');
     });
 
     socket.on('disconnect', function() {
         if (connections.has(currentUser)) {
             console.log('Removing ' + currentUser);
             connections.delete(currentUser);
+            io.emit('a user leave', connections.size);
         }
     });
 
