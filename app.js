@@ -41,6 +41,8 @@ function getCountOfFreeUser(arr) {
     return count;
 }
 
+
+
 io.on('connection', function(socket) {
     let currentUser = socket.id;
     console.log('A user connected', currentUser);
@@ -75,8 +77,13 @@ io.on('connection', function(socket) {
         }
     });
 
+    socket.on('typing start', function (to) {
+      io.to(to).emit('stranger typing start');
+    });
+
 
     socket.on('private chat', function(data) {
+        io.to(data.to).emit('stranger typing stop');
         io.to(data.to).emit('message append', data.message);
     });
 

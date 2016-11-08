@@ -2,7 +2,8 @@ var chatscreen = $('#chatscreen');
 var message = $('#message');
 message.prop('disabled', 'disabled');
 var socket = io.connect('http://localhost:3000');
-
+var typing = $('#typing');
+typing.hide();
 var ctnBtn = $('#ctnBtn');
 var disBtn = $('#disBtn');
 var count = $('#count');
@@ -113,4 +114,16 @@ socket.on('a user join', function(num) {
 
 socket.on('a user leave', function(num) {
     count.html('Users online:' + num);
+});
+
+socket.on('stranger typing start', function () {
+  typing.show();
+});
+
+socket.on('stranger typing stop', function () {
+  typing.hide();
+});
+
+message.keypress(function(event) {
+  socket.emit('typing start', random);
 });
