@@ -4,6 +4,7 @@ const server = require('http').Server(app);
 const io = require('socket.io')(server);
 
 const connections = new Map();
+const tracker = new Array();
 
 app.use(express.static('public'));
 
@@ -11,64 +12,71 @@ app.get('/', (req, res) => {
     res.sendFile(`${__dirname}/index.html`);
 });
 
+app.get('/chat', (req, res) => {
+    res.sendFile(`${__dirname}/chat.html`);
+});
+
 let currentUser = null;
+let randomUser = null;
 
 Array.prototype.getRandom = function(last) {
-   if ( this.length <= 1) {
-    return;
-   } else {
-      var num = 0;
-      do {
-         num = Math.floor(Math.random() * this.length);
-         console.log(this[num]);
-      } while (this[num][0] == last || this[num][1]);
-      return this[num][0];
-   }
+    if (this.length <= 1) {
+        return;
+    } else {
+        var num = 0;
+        do {
+            num = Math.floor(Math.random() * this.length);
+        } while (this[num][0] == last || this[num][1]);
+        return this[num][0];
+    }
 }
 
 function getCountOfFreeUser(arr) {
     let count = 0;
-    for ( let i = 0; i < arr.length; i++ ) {
+    for (let i = 0; i < arr.length; i++) {
         if (!arr[i][1]) {
-            count ++;
+            count++;
         }
     }
     return count;
 }
 
 io.on('connection', function(socket) {
-    console.log('A user connected');
-
     let currentUser = socket.id;
+    console.log('A user connected', currentUser);
 
     // key: socket.id, value: { busy ? }
     connections.set(currentUser, false);
-
     io.emit('a user join', connections.size);
 
-    socket.on('get random', function(data) {
-        var unqArr =  Array.from(connections);
-        if ( unqArr.length <= 1 ) {
+    socket.on('get random', function() {
+        var unqArr = Array.from(connections);
+        if (unqArr.length <= 1) {
             socket.emit('unexpected', "Not enough Users found");
         } else if (getCountOfFreeUser(unqArr) < 2) {
             socket.emit('unexpected', "Not enough Free Users found");
         } else {
-        var randomUser = unqArr.getRandom(data);
-        console.log("Random: " + randomUser);
-        if (randomUser != undefined) {
-            connections.set(randomUser, true);
-            connections.set(currentUser, true);
-            socket.emit('assign-random', randomUser);
-            io.to(randomUser).emit('got one', currentUser);
-        } else {
-            socket.emit('unexpected', "No one found");
+            randomUser = unqArr.getRandom(currentUser);
+            console.log("Random: " + randomUser);
+            if (randomUser != undefined) {
+                connections.set(randomUser, true);
+                connections.set(currentUser, true);
+                tracker.push({
+                    mem1: randomUser,
+                    mem2: currentUser
+                });
+
+                socket.emit('assign-random', randomUser);
+                io.to(randomUser).emit('got one', currentUser);
+
+            } else {
+                socket.emit('unexpected', "No one found");
+            }
         }
-    }
     });
 
 
     socket.on('private chat', function(data) {
-        console.log(data);
         io.to(data.to).emit('message append', data.message);
     });
 
@@ -76,16 +84,36 @@ io.on('connection', function(socket) {
         connections.set(data.from, false);
         connections.set(data.to, false);
         io.to(data.to).emit('stranger leave');
+
     });
 
     socket.on('disconnect', function() {
         if (connections.has(currentUser)) {
             console.log('Removing ' + currentUser);
+            console.log("socket: ", socket.id);
             connections.delete(currentUser);
+
+            if (tracker.length > 0) {
+                let chatterIndex = tracker.findIndex((item) => {
+                    if (item.mem1 == currentUser ||
+                        item.mem2 == currentUser
+                    ) {
+                        return true;
+                    }
+                });
+
+                if (chatterIndex != undefined) {
+                    let chatter = tracker[chatterIndex];
+                    console.log(chatter);
+                    io.to(chatter.mem1).emit('stranger leave');
+                    io.to(chatter.mem2).emit('stranger leave');
+                    tracker.splice(chatterIndex, 1);
+                }
+
+            }
             io.emit('a user leave', connections.size);
         }
     });
-
 });
 
 
@@ -93,4 +121,5 @@ app.get('/getAll', function(req, res) {
     res.json(Array.from(connections));
 });
 
-server.listen(3000);
+
+server.listen(process.env.PORT || 3000);

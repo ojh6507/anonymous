@@ -14,15 +14,14 @@ var st = $('#st');
 var title = $('#title');
 
 var log = function(a) {
-  console.log(a);
+    console.log(a);
 }
 
 ctnBtn.click(function(e) {
-  title.html("Connecting");
-  st.html("Connecting");
-  e.preventDefault();
-  log(socket.id)
-  socket.emit('get random', socket.id );
+    title.html("Connecting");
+    st.html("Connecting");
+    e.preventDefault();
+    socket.emit('get random');
 });
 
 
@@ -31,81 +30,87 @@ var random = null;
 
 
 socket.on('assign-random', function(data) {
-  if (data) {
-    random = data;
-    title.html("Connected");
-    st.html('Connected');
-    message.prop('disabled', false);
-    disBtn.show();
-    ctnBtn.hide();
-  } else {
-    title.html("Retry");
-    st.html('Retry');
-  }
+    if (data) {
+        random = data;
+        title.html("Connected");
+        st.html('Connected');
+        message.prop('disabled', false);
+        disBtn.show();
+        ctnBtn.hide();
+    } else {
+        title.html("Retry");
+        st.html('Retry');
+    }
 });
 
 socket.on('got one', function(data) {
-  if (data) {
-    random = data;
-    title.html("Connected");
-    st.html('Connected');
-    message.prop('disabled', false);
-    disBtn.show();
-    ctnBtn.hide();
-  } else {
-message.prop('disabled', 'disabled');
-    title.html("Retry");
-    st.html('Retry');
-  }
+    if (data) {
+        random = data;
+        title.html("Connected");
+        st.html('Connected');
+        message.prop('disabled', false);
+        disBtn.show();
+        ctnBtn.hide();
+    } else {
+        message.prop('disabled', 'disabled');
+        title.html("Retry");
+        st.html('Retry');
+    }
 });
 
-message.keyup(function(event) { 
-  var msg = message.val().trim();
-  if (event.keyCode == 13 && msg != '') {
-    message.val('');
-    chatscreen.append('<li>'+msg+'</li>');
-    var sendData = {message: msg, from: socket.id, to: random};
-    log(sendData);
-    socket.emit('private chat', sendData);
-  }
+message.keyup(function(event) {
+    var msg = message.val().trim();
+    if (event.keyCode == 13 && msg != '') {
+        message.val('');
+        chatscreen.append('<div>Me: ' + msg + '</div>');
+        var sendData = {
+            message: msg,
+            from: socket.id,
+            to: random
+        };
+        log(sendData);
+        socket.emit('private chat', sendData);
+    }
 });
 
 socket.on('message append', function(msg) {
-  chatscreen.append('<li>'+msg+'</li>');
+    chatscreen.append('<div>Stranger: ' + msg + '</div>');
 });
 
 disBtn.click(function(event) {
-  socket.emit('remove', {from: socket.id, to: random});
-  chatscreen.html('');
-  title.html("Find a stranger");
-  st.html('Find a stranger');
-  disBtn.fadeOut();
-  ctnBtn.fadeIn();
-message.prop('disabled', 'disabled');
+    socket.emit('remove', {
+        from: socket.id,
+        to: random
+    });
+    chatscreen.html('');
+    title.html("Find a stranger");
+    st.html('Find a stranger');
+    disBtn.fadeOut();
+    ctnBtn.fadeIn();
+    message.prop('disabled', 'disabled');
 
 });
 
 
 socket.on('stranger leave', function() {
-  chatscreen.html('');
-  title.html("Find a stranger");
-  st.html('Find a stranger');
-  disBtn.fadeOut();
-  ctnBtn.fadeIn();
-message.prop('disabled', 'disabled');
-  
+    chatscreen.html('');
+    title.html("Find a stranger");
+    st.html('Find a stranger');
+    disBtn.fadeOut();
+    ctnBtn.fadeIn();
+    message.prop('disabled', 'disabled');
+
 });
 
 socket.on('unexpected', function(data) {
-  title.html(data);
-  st.html(data);
+    title.html(data);
+    st.html(data);
 });
 
 socket.on('a user join', function(num) {
-  count.html('Users online:' + num);
+    count.html('Users online:' + num);
 });
 
 socket.on('a user leave', function(num) {
-  count.html('Users online:' + num);
+    count.html('Users online:' + num);
 });
-
