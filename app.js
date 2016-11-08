@@ -13,7 +13,28 @@ app.get('/', (req, res) => {
 
 let currentUser = null;
 
+Array.prototype.getRandom = function(last) {
+   if ( this.length <= 1) {
+    return;
+   } else {
+      var num = 0;
+      do {
+         num = Math.floor(Math.random() * this.length);
+         console.log(this[num]);
+      } while (this[num][0] == last || this[num][1]);
+      return this[num][0];
+   }
+}
 
+function getCountOfFreeUser(arr) {
+    let count = 0;
+    for ( let i = 0; i < arr.length; i++ ) {
+        if (!arr[i][1]) {
+            count ++;
+        }
+    }
+    return count;
+}
 
 io.on('connection', function(socket) {
     console.log('A user connected');
@@ -24,17 +45,34 @@ io.on('connection', function(socket) {
     connections.set(currentUser, false);
 
     socket.on('get random', function(data) {
-        var randomUser = getOneRandomUser(connections, data);
-        connections.set(randomUser, true);
-        connections.set(currentUser, true);
-        socket.emit('assign-random', randomUser);
-        io.to(randomUser).emit('got one', currentUser);     
+        var unqArr =  Array.from(connections);
+        if ( unqArr.length <= 1 ) {
+            socket.emit('unexpected', "Not enough Users found");
+        } else if (getCountOfFreeUser(unqArr) < 2) {
+            socket.emit('unexpected', "Not enough Free Users found");
+        } else {
+        var randomUser = unqArr.getRandom(data);
+        console.log("Random: " + randomUser);
+        if (randomUser != undefined) {
+            connections.set(randomUser, true);
+            connections.set(currentUser, true);
+            socket.emit('assign-random', randomUser);
+            io.to(randomUser).emit('got one', currentUser);
+        } else {
+            socket.emit('unexpected', "No one found");
+        }
+    }
     });
 
 
     socket.on('private chat', function(data) {
         console.log(data);
         io.to(data.to).emit('message append', data.message);
+    });
+
+    socket.on('remove', function(data) {
+        connections.set(data.from, false);
+        connections.set(data.to, false);
     });
 
     socket.on('disconnect', function() {
@@ -45,23 +83,6 @@ io.on('connection', function(socket) {
     });
 
 });
-
-const getOneRandomUser = (connections, user) => {
-    let unqArr = Array.from(connections);
-    let length = unqArr.length;
-    let randomUser = unqArr[getRandomInt(0, length)];
-    console.log(randomUser);
-    if (!randomUser)
-        getOneRandomUser(connections, user);
-    if (user != randomUser[0] && !randomUser[1])
-        return randomUser[0];
-    else
-        getOneRandomUser(connections, user);
-};
-
-const getRandomInt = (min, max) => {
-    return Math.floor(Math.random() * (max - min + 1)) + min;
-};
 
 
 app.get('/getAll', function(req, res) {
