@@ -16,6 +16,8 @@ app.get('/chat', (req, res) => {
     res.sendFile(`${__dirname}/chat.html`);
 });
 
+
+
 let currentUser = null;
 let randomUser = null;
 
@@ -54,9 +56,9 @@ io.on('connection', function(socket) {
     socket.on('get random', function() {
         var unqArr = Array.from(connections);
         if (unqArr.length <= 1) {
-            socket.emit('unexpected', "Not enough Users found");
+            socket.emit('unexpected', "Sorry!");
         } else if (getCountOfFreeUser(unqArr) < 2) {
-            socket.emit('unexpected', "Not enough Free Users found");
+            socket.emit('unexpected', "Invite people here");
         } else {
             randomUser = unqArr.getRandom(currentUser);
             console.log("Random: " + randomUser);
@@ -90,14 +92,22 @@ io.on('connection', function(socket) {
     socket.on('remove', function(data) {
         connections.set(data.from, false);
         connections.set(data.to, false);
-        io.to(data.to).emit('stranger leave');
+
+        let chatterIndex = tracker.findIndex((item) =>{
+          if(item.mem1 == data.from || item.mem2 == data.from) {
+            return true;
+          }
+        });
+
+        tracker.splice(chatterIndex, 1);
+        
+        io.to(data.to).emit('stranger disconnect');
 
     });
 
     socket.on('disconnect', function() {
         if (connections.has(currentUser)) {
             console.log('Removing ' + currentUser);
-            console.log("socket: ", socket.id);
             connections.delete(currentUser);
 
             if (tracker.length > 0) {
@@ -109,23 +119,36 @@ io.on('connection', function(socket) {
                     }
                 });
 
+                console.log(chatterIndex);
+                console.log(tracker);
                 if (chatterIndex != undefined) {
                     let chatter = tracker[chatterIndex];
+                    // that person was chatting too
                     console.log(chatter);
                     io.to(chatter.mem1).emit('stranger leave');
                     io.to(chatter.mem2).emit('stranger leave');
+                    if (connections.has(chatter.mem1)) {
+                      connections.delete(chatter.mem1);
+                    }
+                    if (connections.has(chatter.mem2)) {
+                      connections.delete(chatter.mem2);
+                    }
                     tracker.splice(chatterIndex, 1);
                 }
 
             }
-            io.emit('a user leave', connections.size);
         }
+        io.emit('a user leave', connections.size);
     });
 });
 
 
 app.get('/getAll', function(req, res) {
     res.json(Array.from(connections));
+});
+
+app.get('/room', function (req, res) {
+  res.json(tracker);
 });
 
 
