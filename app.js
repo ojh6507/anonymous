@@ -47,7 +47,6 @@ function getCountOfFreeUser(arr) {
 
 io.on('connection', function(socket) {
     let currentUser = socket.id;
-    console.log('A user connected', currentUser);
 
     // key: socket.id, value: { busy ? }
     connections.set(currentUser, false);
@@ -61,7 +60,7 @@ io.on('connection', function(socket) {
             socket.emit('unexpected', "Invite people here");
         } else {
             randomUser = unqArr.getRandom(currentUser);
-            console.log("Random: " + randomUser);
+
             if (randomUser != undefined) {
                 connections.set(randomUser, true);
                 connections.set(currentUser, true);
@@ -100,14 +99,14 @@ io.on('connection', function(socket) {
         });
 
         tracker.splice(chatterIndex, 1);
-        
+
         io.to(data.to).emit('stranger disconnect');
 
     });
 
     socket.on('disconnect', function() {
         if (connections.has(currentUser)) {
-            console.log('Removing ' + currentUser);
+
             connections.delete(currentUser);
 
             if (tracker.length > 0) {
@@ -119,12 +118,11 @@ io.on('connection', function(socket) {
                     }
                 });
 
-                console.log(chatterIndex);
-                console.log(tracker);
+
                 if (chatterIndex != undefined) {
                     let chatter = tracker[chatterIndex];
                     // that person was chatting too
-                    console.log(chatter);
+                  
                     io.to(chatter.mem1).emit('stranger leave');
                     io.to(chatter.mem2).emit('stranger leave');
                     if (connections.has(chatter.mem1)) {

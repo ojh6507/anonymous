@@ -260,11 +260,15 @@ $(document).ready(function() {
 
 
     socket.on('stranger leave', function() {
-        $content.html('');
-        st.html('Not Connected');
-        disBtn.fadeOut();
-        ctnBtn.fadeIn();
-        $input.prop('disabled', true);
+        $('.wrapper').slideUp('fast', function () {
+          alert('Hey! You are thrown out');
+          window.location.href = '/';
+        });
+        // $content.html('');
+        // st.html('Not Connected');
+        // disBtn.fadeOut();
+        // ctnBtn.fadeIn();
+        // $input.prop('disabled', true);
     });
 
     socket.on('stranger disconnect', function () {
