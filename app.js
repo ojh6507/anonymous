@@ -122,7 +122,7 @@ io.on('connection', function(socket) {
                 if (chatterIndex != undefined) {
                     let chatter = tracker[chatterIndex];
                     // that person was chatting too
-                  
+
                     io.to(chatter.mem1).emit('stranger leave');
                     io.to(chatter.mem2).emit('stranger leave');
                     if (connections.has(chatter.mem1)) {
