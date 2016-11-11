@@ -243,7 +243,7 @@ button:hover {
     border-radius: 2px;
     font-weight: 300;
     position: relative;
-    /* word-break: break-all; */
+    word-break: break-all;
     opacity: 0;
 }
 

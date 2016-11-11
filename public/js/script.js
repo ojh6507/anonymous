@@ -116,14 +116,15 @@ $(document).ready(function() {
     function animateText() {
         setTimeout(function() {
             $content.find('.message-wrapper').last().find('.text-wrapper').addClass('animated fadeIn');
-        }, 350);
+        }, 200);
     }
 
     function scrollBottom() {
+    
         $($inner).animate({
             scrollTop: $($content).offset().top + $($content).outerHeight(true)
         }, {
-            queue: false,
+            queue: true,
             duration: 'ease'
         });
     }

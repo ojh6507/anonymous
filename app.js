@@ -17,7 +17,6 @@ app.get('/chat', (req, res) => {
 });
 
 
-
 let currentUser = null;
 let randomUser = null;
 
